@@ -1,0 +1,12 @@
+para instalar los router 
+npm i react-router-dom
+
+
+ProcessError: Cloning into 'C:\Users\andre\Documents\development2025\SoftwareVICTUS\VictusResidenciasApp\FrontEndApp\React\victus-fronend-residencias\node_modules\.cache\gh-pages\https!github.com!andrias01!github-pages.git'...
+fatal: cannot write keep file 'C:/Users/andre/Documents/development2025/SoftwareVICTUS/VictusResidenciasApp/FrontEndApp/React/victus-fronend-residencias/node_modules/.cache/gh-pages/https!github.com!andrias01!github-pages.git/.git/objects/pack/pack-b98e350e4874b7121f964fac5a4ffa6ebccf88d7.keep': Filename too long    
+fatal: fetch-pack: invalid index-pack output
+
+    at ChildProcess.<anonymous> (C:\Users\andre\Documents\development2025\SoftwareVICTUS\VictusResidenciasApp\FrontEndApp\React\victus-fronend-residencias\node_modules\gh-pages\lib\git.js:42:16)
+    at ChildProcess.emit (node:events:518:28)
+    at maybeClose (node:internal/child_process:1104:16)
+    at ChildProcess._handle.onexit (node:internal/child_process:304:5)

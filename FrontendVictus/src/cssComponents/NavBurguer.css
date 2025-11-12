@@ -1,0 +1,207 @@
+:root {
+    --color_primario_suave: #7ed957;
+    --color_segundario_suave: #a7dce2;
+    --color_primario: #0097b2;
+    --color_blanco: #fff;
+    --color_negro: #333;
+    --altura_header: 80px;
+    --padding_left_right: 2rem;
+    --ancho_maximo: 1200px;
+    --admin-icon: url('../resources/pictures/icons/administrador.png');
+    --porteria-icon: url('../resources/pictures/icons/portero.png');
+    --vivienda-icon: url('../resources/pictures/icons/vivienda.png');
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-image: url('../resources/pictures/Background.png');
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+    /* background-color: #333; */
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+
+img {
+    width: 100px;
+    height: 100px;
+    margin-top: -15px;
+}
+
+a {
+    text-decoration: none;
+}
+
+ol,
+ul {
+    list-style: none;
+}
+
+.header {
+    height: var(--altura_header);
+    background: linear-gradient(90deg, var(--color_primario), var(--color_primario_suave));
+}
+
+.navbar {
+    height: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 0 var(--padding_left_right);
+}
+
+.menu_hamburguesa {
+    display: none;
+}
+
+.menu_hamburguesa:checked+.ul_links {
+    height: calc(100vh - var(--altura_header));
+}
+
+.name1 {
+    color: var(--color_blanco);
+    font-size: 2rem;
+}
+
+.name2 {
+    color: var(--color_blanco);
+    font-size: 1.5rem;
+}
+
+.list_icon {
+    color: var(--color_blanco);
+    cursor: pointer;
+}
+
+.ul_links {
+    width: 100%;
+    /* background-color: var(--color_primario_suave); */
+    position: absolute;
+    top: var(--altura_header);
+    left: 0;
+    height: 0;
+    overflow: hidden;
+    /* height: calc(100vh - var(--altura_header)); */
+    /* display: flex;
+    flex-direction: column; */
+    display: grid;
+    grid-template-rows: 1fr 1fr 1fr;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    transition: all .3s;
+    margin: 20px;
+}
+
+.li_links {
+    text-align: left;
+}
+
+.link {
+    display: flex;
+    flex-direction: row;
+    font-size: 3em;
+    color: var(--color_negro);
+    font-weight: bold;
+    padding: 10px;
+    border: solid 4px var(--color_primario);
+    border-radius: 20px;
+    background-color: var(--color_segundario_suave);
+}
+
+.icon_admin {
+    display: inline-block;
+    width: 50px;
+    /* Ajusta según el tamaño de la imagen */
+    height: 50px;
+    background-image: var(--admin-icon);
+    background-size: cover;
+}
+
+.icon_porteria {
+    display: inline-block;
+    width: 50px;
+    /* Ajusta según el tamaño de la imagen */
+    height: 50px;
+    background-image: var(--porteria-icon);
+    background-size: cover;
+}
+
+.icon_resident {
+    display: inline-block;
+    width: 50px;
+    /* Ajusta según el tamaño de la imagen */
+    height: 50px;
+    background-image: var(--vivienda-icon);
+    background-size: cover;
+}
+
+.auth_access {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    background: transparent;
+    border: none;
+}
+
+.auth_access .ButtonAccept {
+    font-size: 1rem;
+    padding: 10px 16px;
+}
+
+.auth-user {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color_negro);
+}
+
+.auth-user span {
+    font-weight: 600;
+}
+
+@media (min-width:768px) {
+    .labe_hamburguesa {
+        display: none;
+    }
+
+    .ul_links {
+        /* position: static; */
+        height: 65%;
+        /* width: auto; */
+        /* display: flex; */
+        /* flex-direction: column; */
+        display: grid;
+        grid-template-rows: 1fr 1fr 1fr;
+        /* gap: 1rem; */
+    }
+
+    .li_links {
+        text-align: left;
+    }
+
+    .link {
+        display: flex;
+        flex-direction: row;
+        font-size: 2.5rem;
+        transition: all .3s;
+        padding: 10px;
+        border: solid 4px var(--color_primario);
+        border-radius: 20px;
+        background-color: var(--color_segundario_suave);
+    }
+
+    .link:hover {
+        background-color: var(--color_primario);
+    }
+}

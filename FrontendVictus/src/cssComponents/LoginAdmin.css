@@ -1,0 +1,121 @@
+:root {
+    --color_primario_suave: #7ed957;
+    --color_segundario_suave: #a7dce2;
+    --color_primario: #0097b2;
+    --color_blanco: #fff;
+    --color_negro: #333;
+    --altura_header: 80px;
+    --padding_left_right: 5rem;
+    --ancho_maximo: 1200px;
+}
+
+/* LoginAdmin.css */
+
+/* body {
+    font-family: Arial, sans-serif;
+    background: #d4eceb;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    flex-direction: column;
+} */
+
+/* Contenedor del formulario */
+.containerFather {
+    text-align: center;
+    margin: 20px auto;
+    
+}
+.container {
+    background: var(--color_segundario_suave);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+    width: 350px;
+    border: 3px solid var(--color_primario);
+    text-align: center;
+    margin: 12px auto;
+}
+
+/* Título "Iniciar Sesión" */
+.text-initial {
+    color: var(--color_primario);
+    font-size: 22px;
+    margin-bottom: 15px;
+}
+
+/* Estilos para cada campo de entrada */
+.information {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    margin-bottom: 10px;
+}
+
+.textInput {
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+/* Contenedor de los enlaces y botón */
+.linksWithButton {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+}
+
+/* Enlaces de "Registrarse" y "¿Olvidó la contraseña?" */
+.linkRegister, .linkForgetPassword {
+    font-size: 12px;
+    text-decoration: none;
+    color: var(--color_primario);
+}
+
+.linkRegister:hover, .linkForgetPassword:hover {
+    text-decoration: underline;
+}
+
+
+/* Botón "Aceptar" */
+.ButtonAccept {
+    background: #2da68e;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.ButtonAccept:hover {
+    background: #1b8a6e;
+}
+
+.microsoft-signin,
+.microsoft-session {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    text-align: center;
+}
+
+.microsoft-signin p,
+.microsoft-session p {
+    margin: 0;
+    color: #008f8f;
+    font-weight: 600;
+}
