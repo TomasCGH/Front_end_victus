@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Header from "../components/Header";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import { listConjuntos, createConjunto, updateConjunto, deleteConjunto } from "../services/conjuntoService";
-import { fetchDepartamentos, fetchCiudades } from "../services/locationService";
+import { normalizarConjunto } from "../utils/normalizers";
+import useCatalogs from "../contexts/useCatalogs";
 import ConjuntoForm from "../components/ConjuntoForm";
 import { Link } from "react-router-dom";
 
@@ -15,84 +16,83 @@ export default function ConjuntosResidencialesPage() {
 }
 
 function ConjuntosResidencialesInner() {
-  const [items, setItems] = useState([]);
+  const [conjuntos, setConjuntos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(null);
-
-  // Filtros
-  const [nombre, setNombre] = useState("");
-  const [departamentoId, setDepartamentoId] = useState("");
-  const [ciudadId, setCiudadId] = useState("");
-
-  // Listas dinámicas
-  const [departamentos, setDepartamentos] = useState([]);
-  const [ciudades, setCiudades] = useState([]);
-
-  // Cargar departamentos inicial + polling
+  const { departamentos, ciudades, conjuntos: conjuntosCtx } = useCatalogs();
+  const [ciudadesFiltradas, setCiudadesFiltradas] = useState([]);
+  const [filtros, setFiltros] = useState({ nombre: "", departamentoId: "", ciudadId: "" });
+  const filtrosRef = useRef(filtros);
+  useEffect(() => { filtrosRef.current = filtros; }, [filtros]);
+  
+  // Mantener conjuntos desde el contexto
   useEffect(() => {
-    let mounted = true;
-    let timer;
-    const loadDeps = async () => {
-      try {
-        const deps = await fetchDepartamentos();
-        if (mounted) setDepartamentos(deps);
-      } catch (err) {
-        console.error(err);
-        setError("No se pudo cargar la lista de departamentos. Verifica tu conexión con el servidor.");
-      }
-    };
-    loadDeps();
-    timer = setInterval(loadDeps, 45000);
-    return () => { mounted = false; clearInterval(timer); };
-  }, []);
+    setConjuntos(conjuntosCtx.map(completarNombresDesdeCatalogos));
+  }, [conjuntosCtx]);
 
-  // Cargar ciudades dependientes + polling
+  // Derivar ciudades filtradas en memoria según departamento seleccionado
   useEffect(() => {
-    let mounted = true;
-    let timer;
-    const loadCities = async () => {
-      try {
-        const cities = await fetchCiudades(departamentoId);
-        if (mounted) setCiudades(cities);
-      } catch (err) {
-        console.error(err);
-        setError("No se pudo cargar la lista de ciudades. Verifica tu conexión con el servidor.");
-      }
-    };
-    loadCities();
-    timer = setInterval(loadCities, 45000);
-    return () => { mounted = false; clearInterval(timer); };
-  }, [departamentoId]);
+    if (!filtros.departamentoId) {
+      setCiudadesFiltradas(ciudades);
+    } else {
+      setCiudadesFiltradas(
+        ciudades.filter(c => String(c.departamentoId ?? c.departamento_id ?? c.departamento?.id ?? "") === String(filtros.departamentoId))
+      );
+    }
+  }, [filtros.departamentoId, ciudades]);
 
   // Cargar conjuntos según filtros
-  const refresh = async () => {
-    setLoading(true);
-    try {
-      const { items } = await listConjuntos({ nombre, departamentoId, ciudadId });
-      setItems(items);
-      setError("");
-    } catch (err) {
-      console.error(err);
-      setError("No se pudo cargar la lista de conjuntos residenciales. Intenta nuevamente.");
-    } finally {
-      setLoading(false);
-    }
+
+  const completarNombresDesdeCatalogos = (c) => {
+    if (!c) return c;
+    const dep = departamentos.find(d => String(d.id) === String(c.departamentoId));
+    const city = ciudades.find(ci => String(ci.id) === String(c.ciudadId));
+    return {
+      ...c,
+      nombreDepartamento: c.nombreDepartamento || dep?.nombre || "",
+      nombreCiudad: c.nombreCiudad || city?.nombre || "",
+    };
   };
 
-  useEffect(() => {
-    refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const refresh = async () => {
+    // Rehidratar desde contexto; sin llamadas extra
+    setConjuntos(conjuntosCtx.map(completarNombresDesdeCatalogos));
+  };
 
-  const filtered = useMemo(() => items, [items]);
+  // Derivar lista filtrada en memoria (nombre / departamento / ciudad)
+  const conjuntosFiltrados = useMemo(() => {
+    return conjuntos.filter(c => {
+      if (filtros.departamentoId && String(c.departamentoId) !== String(filtros.departamentoId)) return false;
+      if (filtros.ciudadId && String(c.ciudadId) !== String(filtros.ciudadId)) return false;
+      if (filtros.nombre && !c.nombre.toLowerCase().includes(filtros.nombre.toLowerCase())) return false;
+      return true;
+    });
+  }, [conjuntos, filtros]);
+
+  // Cascadas cuando los catálogos cambian desde el contexto
+  useEffect(() => {
+    if (filtros.ciudadId && !ciudades.some(c => String(c.id) === String(filtros.ciudadId))) {
+      setFiltros(f => ({ ...f, ciudadId: "" }));
+    }
+    if (filtros.departamentoId && !departamentos.some(d => String(d.id) === String(filtros.departamentoId))) {
+      setFiltros(f => ({ ...f, departamentoId: "", ciudadId: "" }));
+    }
+  }, [departamentos, ciudades]);
+
+  // Recalcular nombres mostrados cuando cambian catálogos
+  useEffect(() => {
+    setConjuntos(prev => prev.map(completarNombresDesdeCatalogos));
+  }, [departamentos, ciudades]);
+
+  // normalizarConjunto ahora importado desde utils/normalizers
 
   const handleCreate = async (payload) => {
     try {
       await createConjunto(payload);
       setCreating(false);
+      // refresh para sincronizar (SSE debería disparar CREATED si backend lo emite)
       await refresh();
     } catch (err) {
       console.error(err);
@@ -114,18 +114,18 @@ function ConjuntosResidencialesInner() {
           <input
             type="text"
             placeholder="Buscar por nombre"
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
+            value={filtros.nombre}
+            onChange={(e) => setFiltros(f => ({ ...f, nombre: e.target.value }))}
           />
-          <select value={departamentoId} onChange={(e) => setDepartamentoId(e.target.value)}>
+          <select value={filtros.departamentoId} onChange={(e) => setFiltros(f => ({ ...f, departamentoId: e.target.value, ciudadId: "" }))}>
             <option value="">Selecciona un departamento</option>
             {departamentos.map((d) => (
               <option key={d.id} value={d.id}>{d.nombre}</option>
             ))}
           </select>
-          <select value={ciudadId} onChange={(e) => setCiudadId(e.target.value)} disabled={!departamentoId}>
-            <option value="">{departamentoId ? "Selecciona una ciudad" : "Selecciona un departamento"}</option>
-            {ciudades.map((c) => (
+          <select value={filtros.ciudadId} onChange={(e) => setFiltros(f => ({ ...f, ciudadId: e.target.value }))} disabled={!filtros.departamentoId}>
+            <option value="">{filtros.departamentoId ? "Todas las ciudades" : "Selecciona un departamento"}</option>
+            {ciudadesFiltradas.map((c) => (
               <option key={c.id} value={c.id}>{c.nombre}</option>
             ))}
           </select>
@@ -171,11 +171,11 @@ function ConjuntosResidencialesInner() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((item) => (
+            {conjuntosFiltrados.map((item) => (
               <tr key={item.id}>
                 <td>{item.nombre}</td>
-                <td>{item.departamentoNombre ?? item.departamentoId ?? "N/D"}</td>
-                <td>{item.ciudadNombre ?? item.ciudadId ?? "N/D"}</td>
+                <td>{item.nombreDepartamento}</td>
+                <td>{item.nombreCiudad}</td>
                 <td>{item.direccion}</td>
                 <td>{item.telefono}</td>
                 <td>

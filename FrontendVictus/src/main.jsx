@@ -9,6 +9,7 @@ import { CommonZoneProviderWrapper } from './contexts/CommonZone.context.jsx'
 import { MsalProvider } from '@azure/msal-react'
 import { msalInstance } from './authConfig'
 import ErrorBoundary from './components/ErrorBoundary'
+import { CatalogStreamsProvider } from './contexts/CatalogStreamsProvider.jsx'
 
 const rootElement = document.getElementById('root')
 
@@ -30,9 +31,11 @@ async function bootstrap() {
             <PorteroProviderWrapper>
               <AdminProviderWrapper>
                 <CommonZoneProviderWrapper>
-                  <BrowserRouter>
-                    <App />
-                  </BrowserRouter>
+                  <CatalogStreamsProvider>
+                    <BrowserRouter>
+                      <App />
+                    </BrowserRouter>
+                  </CatalogStreamsProvider>
                 </CommonZoneProviderWrapper>
               </AdminProviderWrapper>
             </PorteroProviderWrapper>

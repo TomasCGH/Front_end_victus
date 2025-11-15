@@ -10,6 +10,8 @@ import AccesoDenegado from "./AccesoDenegado"
 import SelectionDashboard from "./SelectionDashboard"
 import ConjuntosResidencialesPage from "./ConjuntosResidencialesPage"
 import ConjuntoDetailPage from "./ConjuntoDetailPage"
+import DepartamentoPage from "./DepartamentoPage"
+import CiudadPage from "./CiudadPage"
 // import Loading from "../loaders/LoadingText"
 
 
@@ -44,6 +46,8 @@ function Pages() {
         />
   <Route path="/conjuntos" element={<ConjuntosResidencialesPage />} />
   <Route path="/conjuntos/:id" element={<ConjuntoDetailPage />} />
+  <Route path="/catalogos/departamentos" element={<DepartamentoPage />} />
+  <Route path="/catalogos/ciudades" element={<CiudadPage />} />
   <Route path="/dashboard" element={<SelectionDashboard />} />
         <Route path="/acceso-denegado" element={<AccesoDenegado />} />
         <Route path="/Loading" element={<Loading />} />

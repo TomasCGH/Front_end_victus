@@ -1,15 +1,14 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { ViviendaContext } from "../contexts/Vivienda.context.jsx";
+import { listConjuntos } from "../services/conjuntoService";
+import { subscribeToConjuntosStream } from "../services/conjuntoStreamService";
+import { normalizarConjunto } from "../utils/normalizers";
 
 const API_BASE_URL = "https://victus-api-9g73.onrender.com/victusresidenciasEasy/api/v1";
 const TIPO_OPCIONES = ["Apartamento", "Casa", "Dúplex"];
 const ESTADO_OPCIONES = ["Disponible", "Ocupada", "Mantenimiento"];
 
-const endpointsConjuntos = [
-  `${API_BASE_URL}/conjuntos-residenciales/todos`,
-  `${API_BASE_URL}/conjuntosResidenciales/todos`,
-  `${API_BASE_URL}/conjuntos/todos`,
-];
+// No usar endpoints externos para conjuntos; se usará nuestro servicio REST + SSE
 
 const initialFormValues = {
   numero: "",
@@ -30,47 +29,42 @@ function RegistrarViviendaForm({ onSuccess, onCancel }) {
   const fetchConjuntos = useCallback(async () => {
     setLoadingConjuntos(true);
     setFeedback({ type: "", message: "" });
-
-    for (const url of endpointsConjuntos) {
-      try {
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`Respuesta no válida del endpoint ${url}`);
-        }
-        const data = await response.json();
-        const lista = Array.isArray(data?.data) ? data.data : [];
-        setConjuntos(lista);
-        return;
-      } catch (error) {
-        console.warn("No se pudo obtener conjuntos residenciales desde", url, error);
-      }
+    try {
+      const { items } = await listConjuntos({ page: 0, size: 200 });
+      setConjuntos(items.map(normalizarConjunto));
+    } catch (error) {
+      console.warn("No se pudo cargar conjuntos residenciales:", error);
+      setFeedback({ type: "error", message: "No fue posible cargar los conjuntos residenciales." });
+    } finally {
+      setLoadingConjuntos(false);
     }
-
-    setFeedback({
-      type: "error",
-      message: "No fue posible cargar los conjuntos residenciales. Intenta nuevamente más tarde.",
-    });
   }, []);
 
   useEffect(() => {
     fetchConjuntos();
+    const cleanup = subscribeToConjuntosStream({
+      onCreated: (raw) => setConjuntos(prev => {
+        const c = normalizarConjunto(raw);
+        if (!c?.id || prev.some(p => String(p.id) === String(c.id))) return prev;
+        return [...prev, c];
+      }),
+      onUpdated: (raw) => setConjuntos(prev => {
+        const c = normalizarConjunto(raw);
+        return prev.map(p => String(p.id) === String(c.id) ? c : p);
+      }),
+      onDeleted: (raw) => setConjuntos(prev => {
+        const c = normalizarConjunto(raw);
+        // Limpiar selección si el conjunto seleccionado se elimina
+        setFormValues(f => (String(f.conjuntoId) === String(c.id) ? { ...f, conjuntoId: "" } : f));
+        return prev.filter(p => String(p.id) !== String(c.id));
+      }),
+      onError: () => {},
+    });
+    return () => cleanup();
   }, [fetchConjuntos]);
 
   const conjuntoOptions = useMemo(() => {
-    if (!conjuntos.length) {
-      return [];
-    }
-
-    return conjuntos.map((item) => ({
-      id: item?.id ?? item?.conjuntoId ?? item?.uuid ?? "",
-      nombre:
-        item?.nombre ??
-        item?.name ??
-        item?.conjuntoNombre ??
-        item?.titulo ??
-        item?.codigo ??
-        "Conjunto sin nombre",
-    }));
+    return conjuntos.map((item) => ({ id: item.id, nombre: item.nombre }));
   }, [conjuntos]);
 
   const handleChange = (event) => {

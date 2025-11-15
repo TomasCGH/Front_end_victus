@@ -1,8 +1,9 @@
-const API_ROOT = "http://localhost:8081/uco-challenge/api/v1";
+// Base raíz del backend unificada
+const API_BASE = "http://localhost:8081/uco-challenge/api/v1";
 
 async function safeFetch(url, options = {}) {
   try {
-    const res = await fetch(url, options);
+    const res = await fetch(url, { mode: 'cors', ...options });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       throw new Error(`HTTP ${res.status}: ${text}`);
@@ -18,7 +19,7 @@ async function safeFetch(url, options = {}) {
 export async function listViviendasByConjunto(conjuntoId, { q = "" } = {}) {
   const params = new URLSearchParams();
   if (q) params.set("q", q);
-  const url = `${API_ROOT}/conjuntos/${encodeURIComponent(conjuntoId)}/viviendas?${params.toString()}`;
+  const url = `${API_BASE}/conjuntos/${encodeURIComponent(conjuntoId)}/viviendas?${params.toString()}`;
   const data = await safeFetch(url);
   const list = Array.isArray(data?.data) ? data.data : Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
   return list.map((x) => ({
@@ -30,7 +31,7 @@ export async function listViviendasByConjunto(conjuntoId, { q = "" } = {}) {
 }
 
 export async function createViviendaForConjunto(conjuntoId, payload) {
-  const url = `${API_ROOT}/conjuntos/${encodeURIComponent(conjuntoId)}/viviendas`;
+  const url = `${API_BASE}/conjuntos/${encodeURIComponent(conjuntoId)}/viviendas`;
   const res = await safeFetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

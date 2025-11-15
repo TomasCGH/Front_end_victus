@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { fetchDepartamentos, fetchCiudades } from "../services/locationService";
+import { useMemo, useState } from "react";
+import useCatalogs from "../contexts/useCatalogs";
 
 const PHONE_REGEX = /^\d{7,10}$/; // simple validación de 7 a 10 dígitos
 
@@ -10,57 +10,22 @@ export default function ConjuntoForm({ initialData = null, onCancel, onSaved }) 
   const [departamentoId, setDepartamentoId] = useState(initialData?.departamentoId ?? "");
   const [ciudadId, setCiudadId] = useState(initialData?.ciudadId ?? "");
 
-  const [departamentos, setDepartamentos] = useState([]);
-  const [ciudades, setCiudades] = useState([]);
-  const [loadingDeps, setLoadingDeps] = useState(false);
-  const [loadingCities, setLoadingCities] = useState(false);
+  const { departamentos, ciudades } = useCatalogs();
   const [error, setError] = useState("");
+  // Catálogos reactivos provienen del provider
+  if (departamentoId && !departamentos.some(d => String(d.id) === String(departamentoId))) {
+    // Si el dpto se eliminó en vivo, resetear selects
+    setDepartamentoId("");
+    setCiudadId("");
+  }
+  if (ciudadId && !ciudades.some(c => String(c.id) === String(ciudadId))) {
+    setCiudadId("");
+  }
 
-  // Cargar departamentos con polling cada 45s
-  useEffect(() => {
-    let mounted = true;
-    let timer;
-    const load = async () => {
-      try {
-        setLoadingDeps(true);
-        const list = await fetchDepartamentos();
-        if (mounted) setDepartamentos(list);
-      } catch (err) {
-        console.error(err);
-        setError("No se pudo cargar la lista de departamentos. Verifica tu conexión con el servidor.");
-      } finally {
-        setLoadingDeps(false);
-      }
-    };
-    load();
-    timer = setInterval(load, 45000);
-    return () => {
-      mounted = false;
-      clearInterval(timer);
-    };
-  }, []);
-
-  // Cargar ciudades cuando cambia el departamento + polling
-  useEffect(() => {
-    let mounted = true;
-    let timer;
-    const load = async () => {
-      if (!departamentoId) { setCiudades([]); setCiudadId(""); return; }
-      try {
-        setLoadingCities(true);
-        const list = await fetchCiudades(departamentoId);
-        if (mounted) setCiudades(list);
-      } catch (err) {
-        console.error(err);
-        setError("No se pudo cargar la lista de ciudades. Verifica tu conexión con el servidor.");
-      } finally {
-        setLoadingCities(false);
-      }
-    };
-    load();
-    timer = setInterval(load, 45000);
-    return () => { mounted = false; clearInterval(timer); };
-  }, [departamentoId]);
+  const ciudadesFiltradas = useMemo(() => {
+    if (!departamentoId) return [];
+    return ciudades.filter((c) => String(c.departamentoId) === String(departamentoId));
+  }, [ciudades, departamentoId]);
 
   const isValid = useMemo(() => {
     return (
@@ -107,7 +72,7 @@ export default function ConjuntoForm({ initialData = null, onCancel, onSaved }) 
 
       <select value={departamentoId} onChange={(e) => setDepartamentoId(e.target.value)} required>
         <option value="" disabled>
-          {loadingDeps ? "Cargando departamentos..." : "Selecciona un departamento"}
+          {"Selecciona un departamento"}
         </option>
         {departamentos.map((d) => (
           <option key={d.id} value={d.id}>
@@ -118,9 +83,9 @@ export default function ConjuntoForm({ initialData = null, onCancel, onSaved }) 
 
       <select value={ciudadId} onChange={(e) => setCiudadId(e.target.value)} required disabled={!departamentoId}>
         <option value="" disabled>
-          {!departamentoId ? "Selecciona primero un departamento" : loadingCities ? "Cargando ciudades..." : "Selecciona una ciudad"}
+          {!departamentoId ? "Selecciona primero un departamento" : "Selecciona una ciudad"}
         </option>
-        {ciudades.map((c) => (
+        {ciudadesFiltradas.map((c) => (
           <option key={c.id} value={c.id}>
             {c.nombre}
           </option>
