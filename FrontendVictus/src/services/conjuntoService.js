@@ -5,8 +5,20 @@ async function safeFetch(url, options = {}) {
   try {
     const res = await fetch(url, { mode: 'cors', ...options });
     if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new Error(`HTTP ${res.status}: ${text}`);
+      let errorMessage = `HTTP ${res.status}`;
+      let errorBody = null;
+      try {
+        errorBody = await res.json();
+        const msg = errorBody?.message || errorBody?.error || errorBody?.detail || errorBody?.msg;
+        if (msg) errorMessage = msg;
+      } catch (_) {
+        const text = await res.text().catch(() => "");
+        if (text) errorMessage = text;
+      }
+      const err = new Error(errorMessage || `HTTP ${res.status}`);
+      err.status = res.status;
+      err.body = errorBody;
+      throw err;
     }
     return await res.json();
   } catch (err) {
@@ -34,9 +46,11 @@ export async function listConjuntos({ nombre = "", departamentoId = "", ciudadId
       telefono: x.telefono ?? x.phone,
       departamentoId: x.departamentoId ?? x.departamento_id ?? x.departamento?.id,
       ciudadId: x.ciudadId ?? x.ciudad_id ?? x.ciudad?.id,
+      administradorId: x.administradorId ?? x.adminId ?? x.administrador?.id ?? x.usuarioAdministradorId,
       // Preferimos campos de nombre explícitos si vienen del backend
       departamentoNombre: x.nombreDepartamento ?? x.departamentoNombre ?? x.departamento?.nombre,
       ciudadNombre: x.nombreCiudad ?? x.ciudadNombre ?? x.ciudad?.nombre,
+      administradorNombre: x.administradorNombre ?? x.adminNombre ?? x.administrador?.nombre ?? x.administrador?.name,
       // Preservamos objetos embebidos si existen para futuras mejoras
       departamento: x.departamento?.id || x.departamento?.nombre ? x.departamento : undefined,
       ciudad: x.ciudad?.id || x.ciudad?.nombre ? x.ciudad : undefined,
@@ -48,19 +62,36 @@ export async function listConjuntos({ nombre = "", departamentoId = "", ciudadId
 }
 
 export async function createConjunto(payload) {
+  // Asegurar campos saneados y presentes según validaciones del backend
+  const body = {
+    nombre: String(payload?.nombre ?? "").trim(),
+    direccion: String(payload?.direccion ?? "").trim(),
+    telefono: String(payload?.telefono ?? "").trim(),
+    departamentoId: payload?.departamentoId,
+    ciudadId: payload?.ciudadId,
+    administradorId: payload?.administradorId,
+  };
   const res = await safeFetch(`${API_BASE}/conjuntos`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(body),
   });
   return res?.data ?? res;
 }
 
 export async function updateConjunto(id, payload) {
+  const body = {
+    nombre: String(payload?.nombre ?? "").trim(),
+    direccion: String(payload?.direccion ?? "").trim(),
+    telefono: String(payload?.telefono ?? "").trim(),
+    departamentoId: payload?.departamentoId,
+    ciudadId: payload?.ciudadId,
+    administradorId: payload?.administradorId,
+  };
   const res = await safeFetch(`${API_BASE}/conjuntos/${encodeURIComponent(id)}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(body),
   });
   return res?.data ?? res;
 }

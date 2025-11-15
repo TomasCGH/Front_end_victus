@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Header from "../components/Header";
 import ProtectedRoute from "../auth/ProtectedRoute";
-import { listConjuntos, createConjunto, updateConjunto, deleteConjunto } from "../services/conjuntoService";
-import { normalizarConjunto } from "../utils/normalizers";
+import { createConjunto, updateConjunto, deleteConjunto } from "../services/conjuntoService";
 import useCatalogs from "../contexts/useCatalogs";
 import ConjuntoForm from "../components/ConjuntoForm";
 import { Link } from "react-router-dom";
@@ -17,15 +16,12 @@ export default function ConjuntosResidencialesPage() {
 
 function ConjuntosResidencialesInner() {
   const [conjuntos, setConjuntos] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(null);
-  const { departamentos, ciudades, conjuntos: conjuntosCtx } = useCatalogs();
+  const [flashMsg, setFlashMsg] = useState("");
+  const { departamentos, ciudades, administradores, conjuntos: conjuntosCtx, loading, error } = useCatalogs();
   const [ciudadesFiltradas, setCiudadesFiltradas] = useState([]);
   const [filtros, setFiltros] = useState({ nombre: "", departamentoId: "", ciudadId: "" });
-  const filtrosRef = useRef(filtros);
-  useEffect(() => { filtrosRef.current = filtros; }, [filtros]);
   
   // Mantener conjuntos desde el contexto
   useEffect(() => {
@@ -49,17 +45,16 @@ function ConjuntosResidencialesInner() {
     if (!c) return c;
     const dep = departamentos.find(d => String(d.id) === String(c.departamentoId));
     const city = ciudades.find(ci => String(ci.id) === String(c.ciudadId));
+    const admin = administradores?.find(a => String(a.id) === String(c.administradorId));
     return {
       ...c,
       nombreDepartamento: c.nombreDepartamento || dep?.nombre || "",
       nombreCiudad: c.nombreCiudad || city?.nombre || "",
+      nombreAdministrador: c.nombreAdministrador || c.administradorNombre || admin?.nombre || "",
     };
   };
 
-  const refresh = async () => {
-    // Rehidratar desde contexto; sin llamadas extra
-    setConjuntos(conjuntosCtx.map(completarNombresDesdeCatalogos));
-  };
+  const refresh = async () => setConjuntos(conjuntosCtx.map(completarNombresDesdeCatalogos));
 
   // Derivar lista filtrada en memoria (nombre / departamento / ciudad)
   const conjuntosFiltrados = useMemo(() => {
@@ -94,9 +89,12 @@ function ConjuntosResidencialesInner() {
       setCreating(false);
       // refresh para sincronizar (SSE debería disparar CREATED si backend lo emite)
       await refresh();
+      setFlashMsg("Conjunto creado correctamente.");
+      setTimeout(() => setFlashMsg(""), 4000);
     } catch (err) {
       console.error(err);
-      alert("No se pudo crear el conjunto residencial. Verifica los datos e intenta nuevamente.");
+      // Propagar para que el formulario muestre el mensaje del backend
+      throw err;
     }
   };
 
@@ -108,6 +106,11 @@ function ConjuntosResidencialesInner() {
           <Link className="ButtonBack" to="/dashboard">Regresar</Link>
         </div>
         <h2>Conjuntos residenciales</h2>
+        {flashMsg && (
+          <div style={{ background: '#e8f5e9', color: '#1b5e20', padding: 8, borderRadius: 6, marginBottom: 12 }}>
+            {flashMsg}
+          </div>
+        )}
 
         {/* Filtros */}
         <div className="admin-form" style={{ marginBottom: 12 }}>
@@ -129,7 +132,7 @@ function ConjuntosResidencialesInner() {
               <option key={c.id} value={c.id}>{c.nombre}</option>
             ))}
           </select>
-          <button type="button" onClick={refresh}>Buscar</button>
+          {/* Filtrado reactivo en memoria; no se requiere Buscar */}
           <button type="button" onClick={() => setCreating((v) => !v)}>
             {creating ? "Ocultar formulario" : "Crear nuevo conjunto residencial"}
           </button>
@@ -147,16 +150,28 @@ function ConjuntosResidencialesInner() {
                 await updateConjunto(editing.id, payload);
                 setEditing(null);
                 await refresh();
+                setFlashMsg("Conjunto actualizado correctamente.");
+                setTimeout(() => setFlashMsg(""), 4000);
               } catch (err) {
                 console.error(err);
-                alert("No se pudo actualizar el conjunto residencial. Intenta nuevamente.");
+                // Propagar para que el formulario muestre el mensaje del backend
+                throw err;
               }
             }}
           />
         )}
 
-        {loading && <p>Cargando conjuntos...</p>}
-        {error && <p style={{ color: "#c0392b" }}>{error}</p>}
+        {error && (
+          <div style={{ color: '#c0392b', marginBottom: 12 }}>
+            <p>Error cargando departamentos</p>
+            <p>Error cargando ciudades</p>
+            <p>Error cargando conjuntos</p>
+          </div>
+        )}
+        {!error && loading && <p>Cargando...</p>}
+        {!error && !loading && conjuntosFiltrados.length === 0 && (
+          <p>No hay conjuntos para mostrar.</p>
+        )}
 
         {/* Tabla */}
         <table className="admin-table">
@@ -167,6 +182,7 @@ function ConjuntosResidencialesInner() {
               <th>Ciudad</th>
               <th>Dirección</th>
               <th>Teléfono</th>
+              <th>Administrador</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -178,6 +194,7 @@ function ConjuntosResidencialesInner() {
                 <td>{item.nombreCiudad}</td>
                 <td>{item.direccion}</td>
                 <td>{item.telefono}</td>
+                <td>{item.nombreAdministrador}</td>
                 <td>
                   <Link className="ButtonAccept" to={`/conjuntos/${item.id}`}>Entrar</Link>
                   <button type="button" onClick={() => setEditing(item)}>Editar</button>
