@@ -2,7 +2,10 @@
 
 const STREAM_URL = "http://localhost:8081/api/v1/departamentos/stream";
 
-function createSSEWithReconnect(url, { onOpen, onMessage, onError, initialDelay = 500, maxDelay = 4000, maxAttempts = 8 }) {
+function createSSEWithReconnect(
+  url,
+  { onOpen, onMessage, onError, onSetup, initialDelay = 500, maxDelay = 4000, maxAttempts = 8 }
+) {
   let es = null;
   let closed = false;
   let retryDelay = initialDelay;
@@ -12,6 +15,7 @@ function createSSEWithReconnect(url, { onOpen, onMessage, onError, initialDelay 
   const open = () => {
     if (closed) return;
     es = new EventSource(url);
+    onSetup?.(es);
     es.onopen = () => { attempts = 0; retryDelay = initialDelay; console.info(`[SSE] Conectado: ${url}`); onOpen?.(); };
     es.onmessage = (evt) => onMessage?.(evt);
     es.onerror = (err) => {
@@ -33,21 +37,52 @@ function createSSEWithReconnect(url, { onOpen, onMessage, onError, initialDelay 
 }
 
 export function subscribeToDepartamentosStream({ onCreated, onUpdated, onDeleted, onError, onOpen } = {}) {
+  const dispatchEnvelope = (envelope) => {
+    try {
+      if (!envelope) return;
+      const tipo = envelope?.tipo ?? envelope?.type;
+      const payloadContainer = envelope?.payload ?? envelope?.data ?? envelope;
+      const dto = payloadContainer?.data ?? payloadContainer?.payload ?? payloadContainer;
+      if (!tipo || !dto) return;
+      if (tipo === 'CREATED') onCreated?.(dto);
+      else if (tipo === 'UPDATED') onUpdated?.(dto);
+      else if (tipo === 'DELETED') onDeleted?.(dto);
+    } catch (e) {
+      onError?.(e);
+    }
+  };
+
+  const normalizePayload = (data) => ({
+    ...data,
+    payload: data?.payload ?? data?.data ?? data?.departamento ?? data,
+  });
+
+  const handleNominal = (tipo) => (event) => {
+    if (!event?.data) return;
+    try {
+      const parsed = JSON.parse(event.data);
+      const normalizedPayload = parsed?.payload ?? parsed?.data ?? parsed?.departamento ?? parsed;
+      dispatchEnvelope({ tipo, payload: normalizedPayload });
+    } catch (e) {
+      onError?.(e);
+    }
+  };
+
   return createSSEWithReconnect(STREAM_URL, {
     onOpen,
     onMessage: (event) => {
       if (!event?.data) return;
       try {
-        const data = JSON.parse(event.data);
-        const tipo = data?.tipo;
-        const payload = data?.payload ?? data?.departamento ?? data;
-        if (!tipo || !payload) return;
-        if (tipo === 'CREATED') onCreated?.(payload);
-        else if (tipo === 'UPDATED') onUpdated?.(payload);
-        else if (tipo === 'DELETED') onDeleted?.(payload);
+        const data = normalizePayload(JSON.parse(event.data));
+        dispatchEnvelope(data);
       } catch (e) { onError?.(e); }
     },
     onError,
+    onSetup: (es) => {
+      es.addEventListener('CREATED', handleNominal('CREATED'));
+      es.addEventListener('UPDATED', handleNominal('UPDATED'));
+      es.addEventListener('DELETED', handleNominal('DELETED'));
+    },
   });
 }
 
