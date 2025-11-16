@@ -37,6 +37,7 @@ export function connectSse(url, { onCreated, onUpdated, onDeleted, onError, onOp
     es.addEventListener('CREATED', parseAnd(onCreated));
     es.addEventListener('UPDATED', parseAnd(onUpdated));
     es.addEventListener('DELETED', parseAnd(onDeleted));
+    es.addEventListener('heartbeat', () => {});
 
     // Fallback message
     es.addEventListener('message', (e) => {

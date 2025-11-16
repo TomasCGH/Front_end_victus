@@ -101,6 +101,7 @@ export function subscribeToConjuntosStream({ onCreated, onUpdated, onDeleted, on
       es.addEventListener('CREATED', handleNominal('CREATED'));
       es.addEventListener('UPDATED', handleNominal('UPDATED'));
       es.addEventListener('DELETED', handleNominal('DELETED'));
+      es.addEventListener('heartbeat', () => {});
     },
   });
 

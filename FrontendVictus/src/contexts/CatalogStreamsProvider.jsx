@@ -22,6 +22,8 @@ export function CatalogStreamsProvider({ children }) {
   const [administradores, setAdministradores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const errorRef = useRef(error);
+  useEffect(() => { errorRef.current = error; }, [error]);
 
   const esRefs = useRef({});
   const retryTimeoutRef = useRef(null); // Controla reintentos
@@ -50,27 +52,26 @@ export function CatalogStreamsProvider({ children }) {
     // Departamentos SSE
     esRefs.current.deps = connectSse(URLS.departamentos, {
       onCreated: (dto) => {
-        if (!error) setDepartamentos((prev) => upsertById(prev, normalizarDepartamento(dto)));
+        if (errorRef.current) return;
+        setDepartamentos((prev) => upsertById(prev, normalizarDepartamento(dto)));
       },
       onUpdated: (dto) => {
-        if (!error) setDepartamentos((prev) => upsertById(prev, normalizarDepartamento(dto)));
+        if (errorRef.current) return;
+        setDepartamentos((prev) => upsertById(prev, normalizarDepartamento(dto)));
       },
       onDeleted: (dto) => {
-        if (!error) {
-          setDepartamentos((prev) => removeById(prev, dto.id ?? dto.departamentoId ?? dto.uuid));
-          const depId = String(dto.id ?? dto.departamentoId ?? dto.uuid);
-          setConjuntos((prev) => prev.filter((c) => String(c.departamentoId) !== depId));
-        }
+        if (errorRef.current) return;
+        setDepartamentos((prev) => removeById(prev, dto.id ?? dto.departamentoId ?? dto.uuid));
+        const depId = String(dto.id ?? dto.departamentoId ?? dto.uuid);
+        setConjuntos((prev) => prev.filter((c) => String(c.departamentoId) !== depId));
       },
       onError: () => {
-        // Cerrar y reiniciar SSE con estado limpio
         setError(true);
         setDepartamentos([]);
         setCiudades([]);
         setConjuntos([]);
         closeAllSse();
         scheduleRetry();
-        openAllSse();
       },
       onDisconnect: () => {
         setError(true);
@@ -79,7 +80,6 @@ export function CatalogStreamsProvider({ children }) {
         setConjuntos([]);
         closeAllSse();
         scheduleRetry();
-        openAllSse();
       },
       onOpen: onSseOpen,
     });
@@ -87,17 +87,18 @@ export function CatalogStreamsProvider({ children }) {
     // Ciudades SSE
     esRefs.current.cities = connectSse(URLS.ciudades, {
       onCreated: (dto) => {
-        if (!error) setCiudades((prev) => upsertById(prev, normalizarCiudad(dto)));
+        if (errorRef.current) return;
+        setCiudades((prev) => upsertById(prev, normalizarCiudad(dto)));
       },
       onUpdated: (dto) => {
-        if (!error) setCiudades((prev) => upsertById(prev, normalizarCiudad(dto)));
+        if (errorRef.current) return;
+        setCiudades((prev) => upsertById(prev, normalizarCiudad(dto)));
       },
       onDeleted: (dto) => {
-        if (!error) {
-          setCiudades((prev) => removeById(prev, dto.id ?? dto.ciudadId ?? dto.uuid));
-          const ciudadId = String(dto.id ?? dto.ciudadId ?? dto.uuid);
-          setConjuntos((prev) => prev.filter((c) => String(c.ciudadId) !== ciudadId));
-        }
+        if (errorRef.current) return;
+        setCiudades((prev) => removeById(prev, dto.id ?? dto.ciudadId ?? dto.uuid));
+        const ciudadId = String(dto.id ?? dto.ciudadId ?? dto.uuid);
+        setConjuntos((prev) => prev.filter((c) => String(c.ciudadId) !== ciudadId));
       },
       onError: () => {
         setError(true);
@@ -106,7 +107,6 @@ export function CatalogStreamsProvider({ children }) {
         setConjuntos([]);
         closeAllSse();
         scheduleRetry();
-        openAllSse();
       },
       onDisconnect: () => {
         setError(true);
@@ -115,7 +115,6 @@ export function CatalogStreamsProvider({ children }) {
         setConjuntos([]);
         closeAllSse();
         scheduleRetry();
-        openAllSse();
       },
       onOpen: onSseOpen,
     });
@@ -123,13 +122,16 @@ export function CatalogStreamsProvider({ children }) {
     // Conjuntos SSE
     esRefs.current.conjuntos = connectSse(URLS.conjuntos, {
       onCreated: (dto) => {
-        if (!error) setConjuntos((prev) => upsertById(prev, normalizarConjunto(dto)));
+        if (errorRef.current) return;
+        setConjuntos((prev) => upsertById(prev, normalizarConjunto(dto)));
       },
       onUpdated: (dto) => {
-        if (!error) setConjuntos((prev) => upsertById(prev, normalizarConjunto(dto)));
+        if (errorRef.current) return;
+        setConjuntos((prev) => upsertById(prev, normalizarConjunto(dto)));
       },
       onDeleted: (dto) => {
-        if (!error) setConjuntos((prev) => removeById(prev, dto.id ?? dto.conjuntoId ?? dto.uuid));
+        if (errorRef.current) return;
+        setConjuntos((prev) => removeById(prev, dto.id ?? dto.conjuntoId ?? dto.uuid));
       },
       onError: () => {
         setError(true);
@@ -138,7 +140,6 @@ export function CatalogStreamsProvider({ children }) {
         setConjuntos([]);
         closeAllSse();
         scheduleRetry();
-        openAllSse();
       },
       onDisconnect: () => {
         setError(true);
@@ -147,7 +148,6 @@ export function CatalogStreamsProvider({ children }) {
         setConjuntos([]);
         closeAllSse();
         scheduleRetry();
-        openAllSse();
       },
       onOpen: onSseOpen,
     });
@@ -155,13 +155,16 @@ export function CatalogStreamsProvider({ children }) {
     // Administradores SSE
     esRefs.current.admins = connectSse(URLS.administradores, {
       onCreated: (dto) => {
-        if (!error) setAdministradores((prev) => upsertById(prev, normalizarAdministrador(dto)));
+        if (errorRef.current) return;
+        setAdministradores((prev) => upsertById(prev, normalizarAdministrador(dto)));
       },
       onUpdated: (dto) => {
-        if (!error) setAdministradores((prev) => upsertById(prev, normalizarAdministrador(dto)));
+        if (errorRef.current) return;
+        setAdministradores((prev) => upsertById(prev, normalizarAdministrador(dto)));
       },
       onDeleted: (dto) => {
-        if (!error) setAdministradores((prev) => removeById(prev, dto.id ?? dto.administradorId ?? dto.adminId ?? dto.uuid));
+        if (errorRef.current) return;
+        setAdministradores((prev) => removeById(prev, dto.id ?? dto.administradorId ?? dto.adminId ?? dto.uuid));
       },
       onError: () => {
         setError(true);
@@ -171,7 +174,6 @@ export function CatalogStreamsProvider({ children }) {
         setAdministradores([]);
         closeAllSse();
         scheduleRetry();
-        openAllSse();
       },
       onDisconnect: () => {
         setError(true);
@@ -181,7 +183,6 @@ export function CatalogStreamsProvider({ children }) {
         setAdministradores([]);
         closeAllSse();
         scheduleRetry();
-        openAllSse();
       },
       onOpen: onSseOpen,
     });
@@ -222,7 +223,7 @@ export function CatalogStreamsProvider({ children }) {
       const [depsRaw, citiesRaw, { items: conjuntosRaw }, adminsRaw] = await Promise.all([
         fetchDepartamentos(),
         fetchCiudades(),
-        listConjuntos({ page: 0, size: 200 }),
+        listConjuntos({ page: 0, size: 20 }),
         fetchAdministradores().catch(() => []),
       ]);
       setDepartamentos(depsRaw.map(normalizarDepartamento));

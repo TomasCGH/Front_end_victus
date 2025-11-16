@@ -85,10 +85,26 @@ function ConjuntosResidencialesInner() {
 
   const handleCreate = async (payload) => {
     try {
-      await createConjunto(payload);
+      const creado = await createConjunto(payload);
       setCreating(false);
       // refresh para sincronizar (SSE debería disparar CREATED si backend lo emite)
       await refresh();
+      // Optimismo: si aún no llegó por SSE, insertar si falta
+      setConjuntos(prev => {
+        const exists = prev.some(c => String(c.id) === String(creado?.id));
+        if (exists) return prev;
+        const normalizado = completarNombresDesdeCatalogos({
+          id: creado?.id,
+          nombre: creado?.nombre || payload.nombre,
+          direccion: creado?.direccion || payload.direccion,
+          telefono: creado?.telefono || payload.telefono,
+          departamentoId: creado?.departamentoId || payload.departamentoId,
+          ciudadId: creado?.ciudadId || payload.ciudadId,
+          administradorId: creado?.administradorId || payload.administradorId,
+          nombreAdministrador: creado?.administradorNombre || creado?.nombreAdministrador,
+        });
+        return [...prev, normalizado];
+      });
       setFlashMsg("Conjunto creado correctamente.");
       setTimeout(() => setFlashMsg(""), 4000);
     } catch (err) {
@@ -147,9 +163,21 @@ function ConjuntosResidencialesInner() {
             onCancel={() => setEditing(null)}
             onSaved={async (payload) => {
               try {
-                await updateConjunto(editing.id, payload);
+                const actualizado = await updateConjunto(editing.id, payload);
                 setEditing(null);
                 await refresh();
+                // Optimismo actualización si SSE demora
+                setConjuntos(prev => prev.map(c => {
+                  if (String(c.id) !== String(editing.id)) return c;
+                  return completarNombresDesdeCatalogos({
+                    ...c,
+                    nombre: actualizado?.nombre || payload.nombre,
+                    direccion: actualizado?.direccion || payload.direccion,
+                    telefono: actualizado?.telefono || payload.telefono,
+                    administradorId: actualizado?.administradorId || payload.administradorId,
+                    nombreAdministrador: actualizado?.administradorNombre || actualizado?.nombreAdministrador || c.nombreAdministrador,
+                  });
+                }));
                 setFlashMsg("Conjunto actualizado correctamente.");
                 setTimeout(() => setFlashMsg(""), 4000);
               } catch (err) {

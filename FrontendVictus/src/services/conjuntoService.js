@@ -9,7 +9,7 @@ async function safeFetch(url, options = {}) {
       let errorBody = null;
       try {
         errorBody = await res.json();
-        const msg = errorBody?.message || errorBody?.error || errorBody?.detail || errorBody?.msg;
+        const msg = errorBody?.clientMessage || errorBody?.client_message || errorBody?.message || errorBody?.error || errorBody?.detail || errorBody?.msg;
         if (msg) errorMessage = msg;
       } catch (_) {
         const text = await res.text().catch(() => "");
@@ -18,6 +18,7 @@ async function safeFetch(url, options = {}) {
       const err = new Error(errorMessage || `HTTP ${res.status}`);
       err.status = res.status;
       err.body = errorBody;
+      err.code = errorBody?.code || errorBody?.errorCode || errorBody?.key;
       throw err;
     }
     return await res.json();
