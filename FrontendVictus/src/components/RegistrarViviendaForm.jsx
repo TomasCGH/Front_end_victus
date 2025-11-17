@@ -3,8 +3,6 @@ import { ViviendaContext } from "../contexts/Vivienda.context.jsx";
 import { listConjuntos } from "../services/conjuntoService";
 import { subscribeToConjuntosStream } from "../services/conjuntoStreamService";
 import { normalizarConjunto } from "../utils/normalizers";
-
-const API_BASE_URL = "https://victus-api-9g73.onrender.com/victusresidenciasEasy/api/v1";
 const TIPO_OPCIONES = ["Apartamento", "Casa", "Dúplex"];
 const ESTADO_OPCIONES = ["Disponible", "Ocupada", "Mantenimiento"];
 

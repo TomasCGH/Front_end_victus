@@ -50,4 +50,39 @@ export async function fetchAdministradores() {
   }));
 }
 
-export const AdministradoresService = { fetchAdministradores };
+export async function createAdministrador(payload) {
+  const res = await safeFetch(`${API_BASE_ADMIN}/administradores`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  return res?.data ?? res;
+}
+
+export async function updateAdministrador(id, payload) {
+  const res = await safeFetch(`${API_BASE_ADMIN}/administradores/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  return res?.data ?? res;
+}
+
+export async function deleteAdministrador(id) {
+  await safeFetch(`${API_BASE_ADMIN}/administradores/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  return { success: true };
+}
+
+export async function findAdministradoresByName(name) {
+  const list = await fetchAdministradores();
+  const q = String(name || '').toLowerCase();
+  return list.filter(a => (a.nombre || '').toLowerCase().includes(q));
+}
+
+export const AdministradoresService = {
+  fetchAdministradores,
+  createAdministrador,
+  updateAdministrador,
+  deleteAdministrador,
+  findAdministradoresByName,
+};

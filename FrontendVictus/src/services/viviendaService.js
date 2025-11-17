@@ -41,4 +41,33 @@ export async function createViviendaForConjunto(conjuntoId, payload) {
   return res?.data ?? res;
 }
 
-export const ViviendaService = { listViviendasByConjunto, createViviendaForConjunto };
+export async function listAllViviendas() {
+  const url = `${API_BASE}/viviendas/todos`;
+  const data = await safeFetch(url);
+  const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+  return list;
+}
+
+export async function updateVivienda(id, payload) {
+  const url = `${API_BASE}/viviendas/${encodeURIComponent(id)}`;
+  const res = await safeFetch(url, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return res?.data ?? res;
+}
+
+export async function deleteVivienda(id) {
+  const url = `${API_BASE}/viviendas/${encodeURIComponent(id)}`;
+  await safeFetch(url, { method: "DELETE" });
+  return { success: true };
+}
+
+export const ViviendaService = {
+  listViviendasByConjunto,
+  createViviendaForConjunto,
+  listAllViviendas,
+  updateVivienda,
+  deleteVivienda,
+};

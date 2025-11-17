@@ -1,4 +1,7 @@
 import { createContext, useEffect, useState } from "react";
+import {
+    AdministradoresService,
+} from "../services/administradoresService";
 
 const AdminContext = createContext();
 
@@ -10,23 +13,20 @@ function AdminProviderWrapper(props) {
 
 
     // Obtener todos los administradores
-    const getAdmin = async () => {
-        try {
-            setLoading(true);
-            const res = await fetch("https://victus-api-9g73.onrender.com/victusresidenciasEasy/api/v1/administradores/todos");
-            if (!res.ok) throw new Error("No se pudo obtener la lista de administradores");
-      
-            const data = await res.json();
-            setAdmins(data.data || []);
-            setFilteredAdmins(data.data || []);
-            setError(null); // limpia cualquier error anterior
-          } catch (err) {
-            console.error("Error al cargar administradores:", err);
-            setError("No se pudo cargar la lista de administradores. Intenta más tarde.");
-          } finally {
-            setLoading(false);
-          }
-    };
+        const getAdmin = async () => {
+                try {
+                        setLoading(true);
+                        const data = await AdministradoresService.fetchAdministradores();
+                        setAdmins(data || []);
+                        setFilteredAdmins(data || []);
+                        setError(null);
+                    } catch (err) {
+                        console.error("Error al cargar administradores:", err);
+                        setError("No se pudo cargar la lista de administradores. Intenta más tarde.");
+                    } finally {
+                        setLoading(false);
+                    }
+        };
 
     useEffect(() => {
         getAdmin();
@@ -42,16 +42,7 @@ function AdminProviderWrapper(props) {
 
     const findAdminsByName = async (name) => {
         try {
-            const response = await fetch("/api/victusresidenciasEasy/api/v1/administradores/todos");
-            const data = await response.json();
-            const allAdmins = data.data;
-
-            // Filtra por nombre
-            const filtered = allAdmins.filter((admin) =>
-                admin.name.toLowerCase().includes(name.toLowerCase())
-            );
-
-            return filtered;
+            return await AdministradoresService.findAdministradoresByName(name);
         } catch (error) {
             console.error("Error filtrando administradores:", error);
             return [];
@@ -62,16 +53,8 @@ function AdminProviderWrapper(props) {
     // Crear nuevo administrador
     const createAdmin = async (newAdmin) => {
         try {
-            const response = await fetch("https://victus-api-9g73.onrender.com/victusresidenciasEasy/api/v1/administradores/create", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(newAdmin)
-            });
-            if (response.ok) {
-                await getAdmin();
-            }
+            await AdministradoresService.createAdministrador(newAdmin);
+            await getAdmin();
         } catch (e) {
             console.error("Error al crear administrador:", e);
         }
@@ -80,12 +63,8 @@ function AdminProviderWrapper(props) {
     // Eliminar un administrador por ID
     const deleteAdmin = async (id) => {
         try {
-            const response = await fetch(`https://victus-api-9g73.onrender.com/victusresidenciasEasy/api/v1/administradores/${id}`, {
-                method: "DELETE"
-            });
-            if (response.ok) {
-                await getAdmin();
-            }
+            await AdministradoresService.deleteAdministrador(id);
+            await getAdmin();
         } catch (e) {
             console.error("Error al eliminar administrador:", e);
         }
@@ -94,16 +73,8 @@ function AdminProviderWrapper(props) {
     // Modificar un administrador por ID
     const updateAdmin = async (id, updatedData) => {
         try {
-            const response = await fetch(`https://victus-api-9g73.onrender.com/victusresidenciasEasy/api/v1/administradores/${id}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(updatedData)
-            });
-            if (response.ok) {
-                await getAdmin();
-            }
+            await AdministradoresService.updateAdministrador(id, updatedData);
+            await getAdmin();
         } catch (e) {
             console.error("Error al actualizar administrador:", e);
         }

@@ -1,6 +1,7 @@
 import { createContext, useCallback, useEffect, useMemo, useState } from "react";
-
-const API_BASE_URL = "https://victus-api-9g73.onrender.com/victusresidenciasEasy/api/v1";
+import {
+  ViviendaService,
+} from "../services/viviendaService";
 
 export const ViviendaContext = createContext();
 
@@ -10,6 +11,7 @@ export function ViviendaProviderWrapper({ children }) {
   const [error, setError] = useState(null);
 
   const handleResponse = async (response) => {
+    // Mantengo el helper por compatibilidad con posibles usos futuros
     if (!response.ok) {
       const message = `Solicitud fallida con estado ${response.status}`;
       throw new Error(message);
@@ -20,9 +22,8 @@ export function ViviendaProviderWrapper({ children }) {
   const getViviendas = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/viviendas/todos`);
-      const data = await handleResponse(response);
-      setViviendas(Array.isArray(data?.data) ? data.data : []);
+      const list = await ViviendaService.listAllViviendas();
+      setViviendas(Array.isArray(list) ? list : []);
       setError(null);
     } catch (err) {
       console.error("Error al cargar viviendas:", err);
@@ -36,16 +37,9 @@ export function ViviendaProviderWrapper({ children }) {
     async (payload) => {
       setLoading(true);
       try {
-        const response = await fetch(`${API_BASE_URL}/viviendas/create`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        });
-
-        const data = await handleResponse(response);
-        const created = data?.data ?? payload;
+        const conjuntoId = payload?.conjuntoId;
+        const data = await ViviendaService.createViviendaForConjunto(conjuntoId, payload);
+        const created = data ?? payload;
         setViviendas((prev) => [...prev, created]);
         setError(null);
         return { success: true, data: created };
@@ -63,16 +57,8 @@ export function ViviendaProviderWrapper({ children }) {
   const updateVivienda = useCallback(async (id, payload) => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/viviendas/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await handleResponse(response);
-      const updated = data?.data ?? { ...payload, id };
+      const data = await ViviendaService.updateVivienda(id, payload);
+      const updated = data ?? { ...payload, id };
       setViviendas((prev) =>
         prev.map((item) => (item.id === id ? { ...item, ...updated } : item))
       );
@@ -90,11 +76,7 @@ export function ViviendaProviderWrapper({ children }) {
   const deleteVivienda = useCallback(async (id) => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/viviendas/${id}`, {
-        method: "DELETE",
-      });
-
-      await handleResponse(response);
+      await ViviendaService.deleteVivienda(id);
       setViviendas((prev) => prev.filter((item) => item.id !== id));
       setError(null);
       return { success: true };
