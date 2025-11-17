@@ -1,6 +1,7 @@
 // SSE para Ciudades con reconexión y callbacks tipados
+import { API } from "../config/api";
 
-const STREAM_URL = "http://localhost:8081/api/v1/ciudades/stream";
+const STREAM_URL = `${API.streamV1}/ciudades/stream`;
 
 function createSSEWithReconnect(
   url,
@@ -14,7 +15,7 @@ function createSSEWithReconnect(
 
   const open = () => {
     if (closed) return;
-    es = new EventSource(url);
+    es = new EventSource(url, { withCredentials: false });
     onSetup?.(es);
     es.onopen = () => { attempts = 0; retryDelay = initialDelay; console.info(`[SSE] Conectado: ${url}`); onOpen?.(); };
     es.onmessage = (evt) => onMessage?.(evt);

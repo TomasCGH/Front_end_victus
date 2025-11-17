@@ -5,14 +5,15 @@ import { fetchAdministradores } from '../services/administradoresService';
 import { listConjuntos } from '../services/conjuntoService';
 import { upsertById, removeById } from '../utils/collection';
 import { normalizarDepartamento, normalizarCiudad, normalizarConjunto, normalizarAdministrador } from '../utils/normalizers';
+import { API } from '../config/api';
 
 const CatalogStreamsContext = createContext(null);
 
 const URLS = {
-  departamentos: 'http://localhost:8081/api/v1/departamentos/stream',
-  ciudades: 'http://localhost:8081/api/v1/ciudades/stream',
-  conjuntos: 'http://localhost:8081/uco-challenge/api/v1/conjuntos/stream',
-    administradores: 'http://localhost:8081/api/v1/administradores/stream',
+  departamentos: `${API.streamV1}/departamentos/stream`,
+  ciudades: `${API.streamV1}/ciudades/stream`,
+  conjuntos: `${API.streamChallenge}/conjuntos/stream`,
+  administradores: `${API.streamV1}/administradores/stream`,
 };
 
 export function CatalogStreamsProvider({ children }) {

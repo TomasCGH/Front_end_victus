@@ -1,7 +1,7 @@
 // Servicio para catálogo de administradores (fetch inicial)
-// Fuente local unificada: http://localhost:8081/api/v1
+import { API } from "../config/api";
 
-const API_BASE_ADMIN = "http://localhost:8081/api/v1";
+const API_BASE_ADMIN = API.v1;
 
 async function safeFetch(url, options = {}) {
   const res = await fetch(url, { mode: 'cors', ...options });

@@ -1,7 +1,8 @@
 // Servicio SSE para conjuntos residenciales con reconexión y callbacks tipados
 // Reacciona a eventos: CREATED / UPDATED / DELETED
+import { API } from "../config/api";
 
-const STREAM_URL = "http://localhost:8081/uco-challenge/api/v1/conjuntos/stream";
+const STREAM_URL = `${API.streamChallenge}/conjuntos/stream`;
 
 function createSSEWithReconnect(
   url,
@@ -15,7 +16,7 @@ function createSSEWithReconnect(
 
   const open = () => {
     if (closed) return;
-    es = new EventSource(url);
+    es = new EventSource(url, { withCredentials: false });
     onSetup?.(es);
     es.onopen = () => {
       attempts = 0;

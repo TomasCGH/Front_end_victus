@@ -1,13 +1,14 @@
 // SSE para Viviendas por Conjunto (endpoint parametrizado por id de conjunto)
 // GET /uco-challenge/api/v1/conjuntos/{id}/viviendas/stream
+import { API } from "../config/api";
 
-const BASE = "http://localhost:8081/uco-challenge/api/v1";
+const BASE = API.streamChallenge;
 
 function createSSEWithReconnect(url, { onOpen, onMessage, onError, initialDelay = 500, maxDelay = 4000, maxAttempts = 8 }) {
   let es = null, closed = false, retryDelay = initialDelay, attempts = 0, retryTimer = null;
   const open = () => {
     if (closed) return;
-    es = new EventSource(url);
+    es = new EventSource(url, { withCredentials: false });
     es.onopen = () => { attempts = 0; retryDelay = initialDelay; console.info(`[SSE] Conectado: ${url}`); onOpen?.(); };
     es.onmessage = (evt) => onMessage?.(evt);
     es.onerror = (err) => {

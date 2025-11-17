@@ -1,8 +1,9 @@
 // Bases del backend
 // NOTA: Por requerimiento, departamentos/ciudades vienen de /api/v1 y
 // conjuntos de /uco-challenge/api/v1
-const API_BASE_LOCATION = "http://localhost:8081/api/v1";
-const API_BASE_CONJUNTOS = "http://localhost:8081/uco-challenge/api/v1";
+import { API } from "../config/api";
+const API_BASE_LOCATION = API.v1;
+const API_BASE_CONJUNTOS = API.challenge;
 
 async function safeFetch(url, options = {}) {
   try {

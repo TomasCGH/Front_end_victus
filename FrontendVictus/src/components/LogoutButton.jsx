@@ -15,7 +15,7 @@ export default function LogoutButton({ className = "ButtonAccept", text = "Cerra
     try {
       // Sólo limpiamos la caché MSAL y nuestras claves, sin borrar todo el localStorage
       await instance.logoutPopup({
-        postLogoutRedirectUri: "http://localhost:5174/",
+        postLogoutRedirectUri: (typeof window !== 'undefined' && window.location?.origin) ? `${window.location.origin}/` : undefined,
       });
     } catch (error) {
       console.error("No se pudo cerrar sesión en Microsoft:", error);

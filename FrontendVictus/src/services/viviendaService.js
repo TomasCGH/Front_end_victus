@@ -1,5 +1,6 @@
 // Base raíz del backend unificada
-const API_BASE = "http://localhost:8081/uco-challenge/api/v1";
+import { API } from "../config/api";
+const API_BASE = API.challenge;
 
 async function safeFetch(url, options = {}) {
   try {

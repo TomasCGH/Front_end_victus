@@ -2,12 +2,14 @@ import { PublicClientApplication } from "@azure/msal-browser";
 
 // Configuración base de MSAL para el tenant específico Victus.
 // Forzamos redirect/postLogout al puerto 5174 (coincide con dev server configurado por el usuario).
+const redirectBase = (typeof window !== "undefined" && window.location?.origin) ? window.location.origin : undefined;
+
 export const msalConfig = {
   auth: {
     clientId: "2d0738af-42c5-47dd-84bc-2d42f1ae40b4",
     authority: "https://login.microsoftonline.com/6c886530-747b-4e10-a112-170efc4f6ac6",
-    redirectUri: "http://localhost:5174/",
-    postLogoutRedirectUri: "http://localhost:5174/",
+    redirectUri: redirectBase ? `${redirectBase}/` : undefined,
+    postLogoutRedirectUri: redirectBase ? `${redirectBase}/` : undefined,
   },
   cache: {
     // Usamos sessionStorage para evitar persistencia entre cierres de pestaña
@@ -22,7 +24,7 @@ export const loginRequest = {
   scopes: ["User.Read"],
   prompt: "select_account",
   authority: "https://login.microsoftonline.com/6c886530-747b-4e10-a112-170efc4f6ac6",
-  redirectUri: "http://localhost:5174/",
+  redirectUri: redirectBase ? `${redirectBase}/` : undefined,
 };
 
 export const msalInstance = new PublicClientApplication(msalConfig);

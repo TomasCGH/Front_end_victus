@@ -1,6 +1,7 @@
 // SSE para Departamentos con reconexión y callbacks tipados
+import { API } from "../config/api";
 
-const STREAM_URL = "http://localhost:8081/api/v1/departamentos/stream";
+const STREAM_URL = `${API.streamV1}/departamentos/stream`;
 
 function createSSEWithReconnect(
   url,
@@ -14,7 +15,7 @@ function createSSEWithReconnect(
 
   const open = () => {
     if (closed) return;
-    es = new EventSource(url);
+    es = new EventSource(url, { withCredentials: false });
     onSetup?.(es);
     es.onopen = () => { attempts = 0; retryDelay = initialDelay; console.info(`[SSE] Conectado: ${url}`); onOpen?.(); };
     es.onmessage = (evt) => onMessage?.(evt);
