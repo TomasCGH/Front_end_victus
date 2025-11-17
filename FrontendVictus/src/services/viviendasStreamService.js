@@ -1,6 +1,7 @@
 // SSE para Viviendas por Conjunto (endpoint parametrizado por id de conjunto)
 // GET /uco-challenge/api/v1/conjuntos/{id}/viviendas/stream
 import { API } from "../config/api";
+import { withSubscriptionKey } from "./httpClient";
 
 const BASE = API.streamChallenge;
 
@@ -29,7 +30,7 @@ function createSSEWithReconnect(url, { onOpen, onMessage, onError, initialDelay 
 
 export function subscribeToViviendasStream(conjuntoId, { onCreated, onUpdated, onDeleted, onError, onOpen } = {}) {
   if (!conjuntoId) throw new Error("subscribeToViviendasStream requiere conjuntoId");
-  const url = `${BASE}/conjuntos/${encodeURIComponent(conjuntoId)}/viviendas/stream`;
+  const url = withSubscriptionKey(`${BASE}/conjuntos/${encodeURIComponent(conjuntoId)}/viviendas/stream`);
   return createSSEWithReconnect(url, {
     onOpen,
     onMessage: (event) => {

@@ -2,12 +2,13 @@
 // NOTA: Por requerimiento, departamentos/ciudades vienen de /api/v1 y
 // conjuntos de /uco-challenge/api/v1
 import { API } from "../config/api";
+import { apimFetch } from "./httpClient";
 const API_BASE_LOCATION = API.v1;
 const API_BASE_CONJUNTOS = API.challenge;
 
 async function safeFetch(url, options = {}) {
   try {
-    const res = await fetch(url, { mode: 'cors', ...options });
+    const res = await apimFetch(url, { mode: 'cors', ...options });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       throw new Error(`HTTP ${res.status}: ${text}`);

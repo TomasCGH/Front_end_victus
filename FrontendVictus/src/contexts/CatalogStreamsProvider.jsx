@@ -6,14 +6,15 @@ import { listConjuntos } from '../services/conjuntoService';
 import { upsertById, removeById } from '../utils/collection';
 import { normalizarDepartamento, normalizarCiudad, normalizarConjunto, normalizarAdministrador } from '../utils/normalizers';
 import { API } from '../config/api';
+import { withSubscriptionKey } from '../services/httpClient';
 
 const CatalogStreamsContext = createContext(null);
 
 const URLS = {
-  departamentos: `${API.streamV1}/departamentos/stream`,
-  ciudades: `${API.streamV1}/ciudades/stream`,
-  conjuntos: `${API.streamChallenge}/conjuntos/stream`,
-  administradores: `${API.streamV1}/administradores/stream`,
+  departamentos: withSubscriptionKey(`${API.streamV1}/departamentos/stream`),
+  ciudades: withSubscriptionKey(`${API.streamV1}/ciudades/stream`),
+  conjuntos: withSubscriptionKey(`${API.streamChallenge}/conjuntos/stream`),
+  administradores: withSubscriptionKey(`${API.streamV1}/administradores/stream`),
 };
 
 export function CatalogStreamsProvider({ children }) {
