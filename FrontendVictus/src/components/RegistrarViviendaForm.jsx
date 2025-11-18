@@ -1,7 +1,6 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { ViviendaContext } from "../contexts/Vivienda.context.jsx";
 import { listConjuntos } from "../services/conjuntoService";
-import { subscribeToConjuntosStream } from "../services/conjuntoStreamService";
 import { normalizarConjunto } from "../utils/normalizers";
 const TIPO_OPCIONES = ["Apartamento", "Casa", "Dúplex"];
 const ESTADO_OPCIONES = ["Disponible", "Ocupada", "Mantenimiento"];
@@ -40,25 +39,6 @@ function RegistrarViviendaForm({ onSuccess, onCancel }) {
 
   useEffect(() => {
     fetchConjuntos();
-    const cleanup = subscribeToConjuntosStream({
-      onCreated: (raw) => setConjuntos(prev => {
-        const c = normalizarConjunto(raw);
-        if (!c?.id || prev.some(p => String(p.id) === String(c.id))) return prev;
-        return [...prev, c];
-      }),
-      onUpdated: (raw) => setConjuntos(prev => {
-        const c = normalizarConjunto(raw);
-        return prev.map(p => String(p.id) === String(c.id) ? c : p);
-      }),
-      onDeleted: (raw) => setConjuntos(prev => {
-        const c = normalizarConjunto(raw);
-        // Limpiar selección si el conjunto seleccionado se elimina
-        setFormValues(f => (String(f.conjuntoId) === String(c.id) ? { ...f, conjuntoId: "" } : f));
-        return prev.filter(p => String(p.id) !== String(c.id));
-      }),
-      onError: () => {},
-    });
-    return () => cleanup();
   }, [fetchConjuntos]);
 
   const conjuntoOptions = useMemo(() => {

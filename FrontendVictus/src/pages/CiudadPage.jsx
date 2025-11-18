@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import Header from "../components/Header";
 import { fetchCiudades, fetchDepartamentos } from "../services/locationService";
-import { subscribeToCiudadesStream } from "../services/ciudadesStreamService";
 import { normalizarCiudad, normalizarDepartamento } from "../utils/normalizers";
 import { Link } from "react-router-dom";
 
@@ -23,22 +22,7 @@ function CiudadPageInner() {
       } catch (_) {}
     };
     load();
-    const cleanup = subscribeToCiudadesStream({
-      onCreated: (raw) => setCiudades(prev => {
-        const c = normalizarCiudad(raw);
-        if (!c?.id || prev.some(p => String(p.id) === String(c.id))) return prev;
-        return [...prev, c];
-      }),
-      onUpdated: (raw) => setCiudades(prev => {
-        const c = normalizarCiudad(raw);
-        return prev.map(p => String(p.id) === String(c.id) ? c : p);
-      }),
-      onDeleted: (raw) => setCiudades(prev => {
-        const c = normalizarCiudad(raw);
-        return prev.filter(p => String(p.id) !== String(c.id));
-      }),
-    });
-    return () => { mounted = false; cleanup(); };
+    return () => { mounted = false; };
   }, []);
 
   const list = useMemo(() => {
@@ -56,7 +40,7 @@ function CiudadPageInner() {
         <div style={{ display: "flex", gap: 8 }}>
           <Link className="ButtonBack" to="/dashboard">Regresar</Link>
         </div>
-        <h2>Ciudades (SSE)</h2>
+        <h2>Ciudades</h2>
         <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
           <select value={departamentoId} onChange={(e) => setDepartamentoId(e.target.value)}>
             <option value="">Todos los departamentos</option>

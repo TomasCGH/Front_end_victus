@@ -20,20 +20,10 @@ function ConjuntosResidencialesInner() {
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(null);
   const [flashMsg, setFlashMsg] = useState("");
-  const { departamentos, ciudades, administradores, conjuntos: conjuntosCtx, loading, error } = useCatalogs();
+  const { departamentos, ciudades, administradores, conjuntos: conjuntosCtx, loading, error, refreshAll } = useCatalogs();
   const [ciudadesFiltradas, setCiudadesFiltradas] = useState([]);
   const [filtros, setFiltros] = useState({ nombre: "", departamentoId: "", ciudadId: "" });
   
-  
-  async function prueba3(params) {
-    const departamentos2 = await fetchDepartamentos();
-    console.log("fetchDepartamentos2()", departamentos2);
-  }
-  prueba3();
-  
-
-  
-  console.log("departamentos", departamentos);
   // Mantener conjuntos desde el contexto
   useEffect(() => {
     setConjuntos(conjuntosCtx.map(completarNombresDesdeCatalogos));
@@ -237,6 +227,12 @@ function ConjuntosResidencialesInner() {
                       if (!window.confirm("¿Eliminar este conjunto?")) return;
                       try {
                         await deleteConjunto(item.id);
+                        // Optimista: reflejar al instante
+                        setConjuntos(prev => prev.filter(c => String(c.id) !== String(item.id)));
+                        setFlashMsg("Conjunto residencial eliminado.");
+                        setTimeout(() => setFlashMsg(""), 4000);
+                        // Sincronizar desde backend
+                        await refreshAll?.();
                         await refresh();
                       } catch (err) {
                         console.error(err);

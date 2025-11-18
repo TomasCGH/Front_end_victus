@@ -21,21 +21,54 @@ async function safeFetch(url, options = {}) {
 }
 
 function buildNombre(admin) {
-  const cand = [];
   // Preferidos directos
   if (admin?.nombre) return String(admin.nombre).trim();
   if (admin?.fullName) return String(admin.fullName).trim();
-  // name + lastName
-  if (admin?.name || admin?.lastName) cand.push(admin?.name, admin?.lastName);
-  // variantes en español snake_case
-  cand.push(admin?.primer_nombre, admin?.segundo_nombre, admin?.primer_apellido, admin?.segundo_apellido);
-  // variantes camelCase
-  cand.push(admin?.primerNombre, admin?.segundoNombre, admin?.primerApellido, admin?.segundoApellido);
-  // variantes en inglés
-  cand.push(admin?.firstName, admin?.middleName, admin?.lastName, admin?.secondLastName);
-  const joined = cand.filter(Boolean).map(String).join(' ').trim();
+  if (admin?.displayName) return String(admin.displayName).trim();
+
+  // Componer a partir de posibles campos
+  const parts = [
+    // español comunes
+    admin?.nombres,
+    admin?.apellidos,
+    admin?.primer_nombre,
+    admin?.segundo_nombre,
+    admin?.primer_apellido,
+    admin?.segundo_apellido,
+    // camelCase
+    admin?.primerNombre,
+    admin?.segundoNombre,
+    admin?.primerApellido,
+    admin?.segundoApellido,
+    // inglés
+    admin?.name,
+    admin?.lastName,
+    admin?.firstName,
+    admin?.middleName,
+    admin?.secondLastName,
+    admin?.givenName,
+    admin?.familyName,
+  ];
+  const joined = parts.filter(Boolean).map(String).join(' ').trim();
   const compact = joined.replace(/\s+/g, ' ').trim();
-  return compact || '';
+  if (compact) return compact;
+
+  // Fallback: derivar del email si existe
+  const email = String(admin?.email || '').trim();
+  if (email) {
+    const local = email.split('@')[0] || '';
+    if (local) {
+      const pretty = local
+        .replace(/[._-]+/g, ' ')
+        .split(' ')
+        .filter(Boolean)
+        .map(s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase())
+        .join(' ')
+        .trim();
+      if (pretty) return pretty;
+    }
+  }
+  return '';
 }
 
 export async function fetchAdministradores() {

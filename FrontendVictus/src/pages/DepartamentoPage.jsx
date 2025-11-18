@@ -2,8 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import Header from "../components/Header";
 import { fetchDepartamentos } from "../services/locationService";
-import { deleteConjunto } from "../services/conjuntoService";
-import { subscribeToDepartamentosStream } from "../services/departamentosStreamService";
 import { normalizarDepartamento } from "../utils/normalizers";
 import { Link } from "react-router-dom";
 
@@ -21,22 +19,7 @@ function DepartamentoPageInner() {
       } catch (_) {}
     };
     load();
-    const cleanup = subscribeToDepartamentosStream({
-      onCreated: (raw) => setDepartamentos(prev => {
-        const d = normalizarDepartamento(raw);
-        if (!d?.id || prev.some(p => String(p.id) === String(d.id))) return prev;
-        return [...prev, d];
-      }),
-      onUpdated: (raw) => setDepartamentos(prev => {
-        const d = normalizarDepartamento(raw);
-        return prev.map(p => String(p.id) === String(d.id) ? d : p);
-      }),
-      onDeleted: (raw) => setDepartamentos(prev => {
-        const d = normalizarDepartamento(raw);
-        return prev.filter(p => String(p.id) !== String(d.id));
-      }),
-    });
-    return () => { mounted = false; cleanup(); };
+    return () => { mounted = false; };
   }, []);
 
   const list = useMemo(() => {
@@ -52,7 +35,7 @@ function DepartamentoPageInner() {
         <div style={{ display: "flex", gap: 8 }}>
           <Link className="ButtonBack" to="/dashboard">Regresar</Link>
         </div>
-        <h2>Departamentos (SSE)</h2>
+        <h2>Departamentos</h2>
         <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
           <input placeholder="Buscar por nombre" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
