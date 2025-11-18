@@ -5,6 +5,7 @@ import { createConjunto, updateConjunto, deleteConjunto } from "../services/conj
 import useCatalogs from "../contexts/useCatalogs";
 import ConjuntoForm from "../components/ConjuntoForm";
 import { Link } from "react-router-dom";
+import { fetchDepartamentos } from "../services/locationService";
 
 export default function ConjuntosResidencialesPage() {
   return (
@@ -23,6 +24,16 @@ function ConjuntosResidencialesInner() {
   const [ciudadesFiltradas, setCiudadesFiltradas] = useState([]);
   const [filtros, setFiltros] = useState({ nombre: "", departamentoId: "", ciudadId: "" });
   
+  
+  async function prueba3(params) {
+    const departamentos2 = await fetchDepartamentos();
+    console.log("fetchDepartamentos2()", departamentos2);
+  }
+  prueba3();
+  
+
+  
+  console.log("departamentos", departamentos);
   // Mantener conjuntos desde el contexto
   useEffect(() => {
     setConjuntos(conjuntosCtx.map(completarNombresDesdeCatalogos));
@@ -189,13 +200,7 @@ function ConjuntosResidencialesInner() {
           />
         )}
 
-        {error && (
-          <div style={{ color: '#c0392b', marginBottom: 12 }}>
-            <p>Error cargando departamentos</p>
-            <p>Error cargando ciudades</p>
-            <p>Error cargando conjuntos</p>
-          </div>
-        )}
+        
         {!error && loading && <p>Cargando...</p>}
         {!error && !loading && conjuntosFiltrados.length === 0 && (
           <p>No hay conjuntos para mostrar.</p>

@@ -21,16 +21,19 @@ async function safeFetch(url, options = {}) {
 
 export async function fetchDepartamentos() {
   const data = await safeFetch(`${API_BASE_LOCATION}/departamentos`);
+  console.log("fetchDepartamentos data:", data);
   // Normalizamos a { id, nombre }
   const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
-  return list.map((d) => ({ id: d.id ?? d.departamentoId ?? d.uuid ?? d.codigo, nombre: d.nombre ?? d.name ?? d.descripcion ?? "(Sin nombre)" }));
+   return list.map((d) => ({ id: d.id ?? d.departamentoId ?? d.uuid ?? d.codigo, nombre: d.nombre ?? d.departamentoNombre ?? d.descripcion ?? "(Sin nombre)" }));
+   
 }
 
 export async function fetchCiudades(departamentoId) {
   const query = departamentoId ? `?departamentoId=${encodeURIComponent(departamentoId)}` : "";
   const data = await safeFetch(`${API_BASE_LOCATION}/ciudades${query}`);
   const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
-  return list.map((c) => ({ id: c.id ?? c.ciudadId ?? c.uuid ?? c.codigo, nombre: c.nombre ?? c.name ?? c.descripcion ?? "(Sin nombre)", departamentoId: c.departamentoId ?? c.departamento_id ?? c.deptoId }));
+  return list.map((c) => ({ id: c.id ?? c.ciudadId ?? c.uuid ?? c.codigo, nombre: c.nombre ?? c.ciudadNombre ?? c.descripcion ?? "(Sin nombre)", departamentoId: c.departamentoId ?? c.departamento_id ?? c.deptoId }));
+
 }
 
 export const LocationService = { fetchDepartamentos, fetchCiudades };
