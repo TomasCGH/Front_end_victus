@@ -1,11 +1,10 @@
 // Base raíz del backend
 import { API } from "../config/api";
-import { apimFetch } from "./httpClient";
 const API_BASE = API.challenge;
 
 async function safeFetch(url, options = {}) {
   try {
-    const res = await apimFetch(url, { mode: 'cors', ...options });
+    const res = await fetch(url, { mode: 'cors', ...options });
     if (!res.ok) {
       let errorMessage = `HTTP ${res.status}`;
       let errorBody = null;

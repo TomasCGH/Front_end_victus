@@ -1,11 +1,10 @@
 // Servicio para catálogo de administradores (fetch inicial)
 import { API } from "../config/api";
-import { apimFetch } from "./httpClient";
 
 const API_BASE_ADMIN = API.v1;
 
 async function safeFetch(url, options = {}) {
-  const res = await apimFetch(url, { mode: 'cors', ...options });
+  const res = await fetch(url, { mode: 'cors', ...options });
   if (!res.ok) {
     let message = `HTTP ${res.status}`;
     try {

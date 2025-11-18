@@ -1,8 +1,7 @@
 // SSE para Departamentos con reconexión y callbacks tipados
 import { API } from "../config/api";
-import { withSubscriptionKey } from "./httpClient";
 
-const STREAM_URL = withSubscriptionKey(`${API.streamV1}/departamentos/stream`);
+const STREAM_URL = `${API.streamV1}/departamentos/stream`;
 
 function createSSEWithReconnect(
   url,

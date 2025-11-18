@@ -1,9 +1,8 @@
 // Servicio SSE para conjuntos residenciales con reconexión y callbacks tipados
 // Reacciona a eventos: CREATED / UPDATED / DELETED
 import { API } from "../config/api";
-import { withSubscriptionKey } from "./httpClient";
 
-const STREAM_URL = withSubscriptionKey(`${API.streamChallenge}/conjuntos/stream`);
+const STREAM_URL = `${API.streamChallenge}/conjuntos/stream`;
 
 function createSSEWithReconnect(
   url,
