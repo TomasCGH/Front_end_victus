@@ -3,7 +3,7 @@
 // conjuntos de /uco-challenge/api/v1
 import { API } from "../config/api";
 const API_BASE_LOCATION = API.v1;
-const API_BASE_CONJUNTOS = API.challenge;
+const API_BASE_CONJUNTOS = API.v1; // Conjuntos también usan el mismo prefijo CRUD
 
 async function safeFetch(url, options = {}) {
   try {

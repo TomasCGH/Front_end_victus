@@ -1,7 +1,7 @@
 // Servicio para catálogo de administradores (fetch inicial)
 import { API } from "../config/api";
 
-const API_BASE_ADMIN = API.v1;
+const API_BASE_ADMIN = API.v1; // Ya apunta al prefijo CRUD correcto
 
 async function safeFetch(url, options = {}) {
   const res = await fetch(url, { mode: 'cors', ...options });

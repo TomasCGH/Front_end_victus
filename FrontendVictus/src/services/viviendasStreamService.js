@@ -2,7 +2,7 @@
 // GET /uco-challenge/api/v1/conjuntos/{id}/viviendas/stream
 import { API } from "../config/api";
 
-const BASE = API.streamChallenge;
+const BASE = API.streamV1; // Ajustado al prefijo de streams
 
 function createSSEWithReconnect(url, { onOpen, onMessage, onError, initialDelay = 500, maxDelay = 4000, maxAttempts = 8 }) {
   let es = null, closed = false, retryDelay = initialDelay, attempts = 0, retryTimer = null;

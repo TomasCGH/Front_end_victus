@@ -2,7 +2,7 @@
 // Reacciona a eventos: CREATED / UPDATED / DELETED
 import { API } from "../config/api";
 
-const STREAM_URL = `${API.streamChallenge}/conjuntos/stream`;
+const STREAM_URL = `${API.streamV1}/conjuntos/stream`; // Ajustado al prefijo de streams
 
 function createSSEWithReconnect(
   url,

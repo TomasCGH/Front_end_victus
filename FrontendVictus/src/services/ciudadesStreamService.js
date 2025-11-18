@@ -1,7 +1,7 @@
 // SSE para Ciudades con reconexión y callbacks tipados
 import { API } from "../config/api";
 
-const STREAM_URL = `${API.streamV1}/ciudades/stream`;
+const STREAM_URL = `${API.streamV1}/ciudades/stream`; // Prefijo streams real
 
 function createSSEWithReconnect(
   url,

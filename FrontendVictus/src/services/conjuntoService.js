@@ -1,6 +1,6 @@
 // Base raíz del backend
 import { API } from "../config/api";
-const API_BASE = API.challenge;
+const API_BASE = API.v1;
 
 async function safeFetch(url, options = {}) {
   try {

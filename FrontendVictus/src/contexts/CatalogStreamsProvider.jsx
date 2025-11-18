@@ -12,7 +12,7 @@ const CatalogStreamsContext = createContext(null);
 const URLS = {
   departamentos: `${API.streamV1}/departamentos/stream`,
   ciudades: `${API.streamV1}/ciudades/stream`,
-  conjuntos: `${API.streamChallenge}/conjuntos/stream`,
+  conjuntos: `${API.streamV1}/conjuntos/stream`,
   administradores: `${API.streamV1}/administradores/stream`,
 };
 
